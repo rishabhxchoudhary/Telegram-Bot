@@ -11,9 +11,9 @@ from redvid import Downloader
 import os
 import time
 
-API_KEY = ""
+API_KEY = "5215172336:AAExMMURMmx-VoOiqj68thVmLJTFrb67gZc"
 bot = telebot.TeleBot(API_KEY)
-reddit=praw.Reddit(client_id='',client_secret='',username='',password='',user_agent='')
+reddit=praw.Reddit(client_id='66VIObVPndtbig',client_secret='nIfN5ibuzs-giWCNCZ3s1dtZoj6YYw',username='RK26072003',password='PYTHON123',user_agent='RK')
 convertapi.api_secret = '66kpFfFS194MEvNN'
 reddit_downloader = Downloader(max_q=True)
 with open("subs.bin","rb") as f:
