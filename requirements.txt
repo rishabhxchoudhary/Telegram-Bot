@@ -1,7 +1,6 @@
 ffmpeg
 git+https://github.com/pyca/pynacl/
 beautifulsoup4==4.9.1
-git+git://github.com/kennethreitz/requests.git
 requests
 praw
 convertapi
