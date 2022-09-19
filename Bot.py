@@ -7,18 +7,30 @@ import pickle
 import convertapi
 import tempfile
 from io import BytesIO
-from redvid import Downloader
+# from redvid import Downloader
 import os
 import time
+
+http_proxy  = "http://10.10.1.10:3128"
+https_proxy = "https://10.10.1.11:1080"
+ftp_proxy   = "ftp://10.10.1.10:3128"
+
+proxyDict = { 
+              "http"  : http_proxy, 
+              "https" : https_proxy, 
+              "ftp"   : ftp_proxy
+            }
 
 API_KEY = "5215172336:AAExMMURMmx-VoOiqj68thVmLJTFrb67gZc"
 bot = telebot.TeleBot(API_KEY)
 reddit=praw.Reddit(client_id='66VIObVPndtbig',client_secret='nIfN5ibuzs-giWCNCZ3s1dtZoj6YYw',username='RK26072003',password='PYTHON123',user_agent='RK')
 convertapi.api_secret = '66kpFfFS194MEvNN'
-reddit_downloader = Downloader(max_q=True)
+# reddit_downloader = Downloader(max_q=True)
 with open("subs.bin","rb") as f:
     subs = pickle.load(f) 
+
 print("Bot is ready.")
+
 RUN=True
 
 @bot.message_handler(commands=['start'])
@@ -87,15 +99,46 @@ def send_memes(message):
     name=random_sub.title
     url=str(random_sub.url)
     print(url)
+    try:
+        if "redgif" in url or "gfycat" in url:
+            r = requests.get(url)
+            soup = BeautifulSoup(r.content,"html.parser")
+            l = soup.find_all(property="og:video")
+            url = l[-1]["content"]
+            # print(url)
+        if "imgur" in url:
+            url = url.replace("gifv","mp4")
+            # print(url)
+
+    except: bot.send_message(chat_id=message.chat.id,text="Error")
+    bot.send_chat_action(chat_id=message.chat.id,action='typing')
+    bot.send_message(chat_id=message.chat.id,text=name)
+    # try:
     if "mp4" in url:
         bot.send_chat_action(chat_id=message.chat.id,action='upload_video')
         bot.send_video(chat_id=message.chat.id,video=url)
     elif "v.redd" in url:
-        reddit_downloader.url = url
-        name=reddit_downloader.download()
+        # reddit_downloader.url = url
+        # name=reddit_downloader.download()
+        url = url+".json"
+        print("URL :",url)
+        r = requests.get(url,headers={"User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36"})
+        data = r.json()[0]
+        video_url = data["data"]['children'][0]['data']['secure_media']['reddit_video']['fallback_url']
+        print("Video URL : ",video_url)
+        audio_url = "https://v.redd.it/"+video_url.split("/")[3]+"/DASH_audio.mp4"
+        with open("video.mp4","wb") as f:
+            g = requests.get(video_url,stream=True)
+            f.write(g.content)
+        with open("audio.mp3","wb") as f:
+            g = requests.get(audio_url,stream=True)
+            f.write(g.content)
+        os.system("ffmpeg -i video.mp4 -i audio.mp3 -c copy output.mp4")
         bot.send_chat_action(chat_id=message.chat.id,action='upload_video')
-        bot.send_video(chat_id=message.chat.id, video=open(name, 'rb'), supports_streaming=True)
-        os.remove(name)
+        bot.send_video(chat_id=message.chat.id, video=open("output.mp4", 'rb'), supports_streaming=True)
+        os.remove("video.mp4")
+        os.remove("audio.mp3")
+        os.remove("output.mp4")
     elif "gif" in url:
         bot.send_chat_action(chat_id=message.chat.id,action='upload_video')
         bot.send_animation(chat_id=message.chat.id,animation=url)
@@ -159,6 +202,17 @@ def send_all_memes(message):
         count+=1
         url=str(i.url)
         name=i.title
+        if "redgif" in url or "gfycat" in url:
+            r = requests.get(url)
+            soup = BeautifulSoup(r.content,"html.parser")
+            l = soup.find_all(property="og:video")
+            try:
+                url = l[-1]["content"]
+            except: pass
+            # print(url)
+        if "imgur" in url:
+            url = url.replace("gifv","mp4")
+            # print(url)
         bot.send_chat_action(chat_id=message.chat.id,action='typing')
         bot.send_message(chat_id=message.chat.id,text=name)
         try:
@@ -167,12 +221,27 @@ def send_all_memes(message):
                 bot.send_video(chat_id=message.chat.id,video=url)
 
             elif "v.redd" in url:
-                reddit_downloader.url = url
-                name=reddit_downloader.download()
+                # reddit_downloader.url = url
+                # name=reddit_downloader.download()
+                url = url+".json"
+                print(url)
+                r = requests.get(url,headers={"User-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36"})
+                data = r.json()[0]
+                video_url = data["data"]['children'][0]['data']['secure_media']['reddit_video']['fallback_url']
+                print(video_url)
+                audio_url = "https://v.redd.it/"+video_url.split("/")[3]+"/DASH_audio.mp4"
+                with open("video.mp4","wb") as f:
+                    g = requests.get(video_url,stream=True)
+                    f.write(g.content)
+                with open("audio.mp3","wb") as f:
+                    g = requests.get(audio_url,stream=True)
+                    f.write(g.content)
+                os.system("ffmpeg -i video.mp4 -i audio.mp3 -c copy output.mp4")
                 bot.send_chat_action(chat_id=message.chat.id,action='upload_video')
-                bot.send_video(chat_id=message.chat.id, video=open(name, 'rb'), supports_streaming=True)
-                os.remove(name)
-
+                bot.send_video(chat_id=message.chat.id, video=open("output.mp4", 'rb'), supports_streaming=True)
+                os.remove("video.mp4")
+                os.remove("audio.mp3")
+                os.remove("output.mp4")
             elif "gif" in url:
                 bot.send_chat_action(chat_id=message.chat.id,action='upload_video')
                 bot.send_animation(chat_id=message.chat.id,animation=url)
