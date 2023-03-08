@@ -1,7 +1,13 @@
+# !pip install pyTelegramBotAPI
+# !pip install praw
+# !pip install requests
+# !pip install beautifulsoup4
+# !pip install redgifs
+# !pip install convertapi
+
 import telebot
 import threading,sys
 import praw
-from cred import *
 import requests
 from bs4 import BeautifulSoup
 import os
@@ -11,14 +17,20 @@ import convertapi
 from io import BytesIO
 import tempfile
 
+
 API_KEY = "5215172336:AAExMMURMmx-VoOiqj68thVmLJTFrb67gZc"
 convertapi.api_secret = '66kpFfFS194MEvNN'
-
+telegram_token = "5215172336:AAExMMURMmx-VoOiqj68thVmLJTFrb67gZc"
 api = redgifs.API()
 api.login()
 HEADERS = api.http.headers
 get_gif = api.http.get_gif
 
+username = "Fit-Belt1935"
+password = "Rishabh@12345"
+client_id = "H2f8VSpd-8t5AoQSGZVVoA"
+client_secret='c5PexU5V63uQYOGeMQWAz0pqG1FN0w'
+user_agent="Reddit bot for bidding"
 bot = telebot.TeleBot(telegram_token)
 reddit = praw.Reddit(client_id=client_id, client_secret=client_secret,
                      username=username, password=password, user_agent=user_agent)
